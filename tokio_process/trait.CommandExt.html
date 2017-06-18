@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `CommandExt` trait in crate `tokio_process`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, CommandExt">
+
+    <title>tokio_process::CommandExt - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../normalize.css">
+    <link rel="stylesheet" type="text/css" href="../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc trait">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'>Trait CommandExt</p><div class="block items"><ul><li><a href="#required-methods">Required Methods</a></li><li><a href="#implementors">Implementors</a></li></ul></div><p class='location'><a href='index.html'>tokio_process</a></p><script>window.sidebarCurrent = {name: 'CommandExt', ty: 'trait', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content">
+<h1 class='fqn'><span class='in-band'>Trait <a href='index.html'>tokio_process</a>::<wbr><a class="trait" href=''>CommandExt</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a class='srclink' href='../src/tokio_process/lib.rs.html#158-212' title='goto source code'>[src]</a></span></h1>
+<pre class='rust trait'>pub trait CommandExt {
+    fn <a href='#tymethod.spawn_async' class='fnname'>spawn_async</a>(&amp;mut self, handle: &amp;<a class="struct" href="https://docs.rs/tokio-core/0.1/tokio_core/reactor/struct.Handle.html" title="struct tokio_core::reactor::Handle">Handle</a>) -&gt; <a class="type" href="https://doc.rust-lang.org/nightly/std/io/error/type.Result.html" title="type std::io::error::Result">Result</a>&lt;<a class="struct" href="../tokio_process/struct.Child.html" title="struct tokio_process::Child">Child</a>&gt;;
+    fn <a href='#tymethod.status_async' class='fnname'>status_async</a>(&amp;mut self, handle: &amp;<a class="struct" href="https://docs.rs/tokio-core/0.1/tokio_core/reactor/struct.Handle.html" title="struct tokio_core::reactor::Handle">Handle</a>) -&gt; <a class="struct" href="../tokio_process/struct.StatusAsync.html" title="struct tokio_process::StatusAsync">StatusAsync</a>;
+    fn <a href='#tymethod.output_async' class='fnname'>output_async</a>(&amp;mut self, handle: &amp;<a class="struct" href="https://docs.rs/tokio-core/0.1/tokio_core/reactor/struct.Handle.html" title="struct tokio_core::reactor::Handle">Handle</a>) -&gt; <a class="struct" href="../tokio_process/struct.OutputAsync.html" title="struct tokio_process::OutputAsync">OutputAsync</a>;
+}</pre><div class='docblock'><p>Extensions provided by this crate to the <code>Command</code> type in the standard
+library.</p>
+
+<p>This crate primarily enhances the standard library&#39;s <code>Command</code> type with
+asynchronous capabilities. The currently three blocking functions in the
+standard library, <code>spawn</code>, <code>status</code>, and <code>output</code>, all have asynchronous
+versions through this trait.</p>
+
+<p>Note that the <code>Child</code> type spawned is specific to this crate, and that the
+I/O handles created from this crate are all asynchronous as well (differing
+from their <code>std</code> counterparts).</p>
+</div>
+            <h2 id='required-methods'>Required Methods</h2>
+            <div class='methods'>
+        <h3 id='tymethod.spawn_async' class='method'><span id='spawn_async.v' class='invisible'><code>fn <a href='#tymethod.spawn_async' class='fnname'>spawn_async</a>(&amp;mut self, handle: &amp;<a class="struct" href="https://docs.rs/tokio-core/0.1/tokio_core/reactor/struct.Handle.html" title="struct tokio_core::reactor::Handle">Handle</a>) -&gt; <a class="type" href="https://doc.rust-lang.org/nightly/std/io/error/type.Result.html" title="type std::io::error::Result">Result</a>&lt;<a class="struct" href="../tokio_process/struct.Child.html" title="struct tokio_process::Child">Child</a>&gt;</code></span></h3><div class='docblock'><p>Executes the command as a child process, returning a handle to it.</p>
+
+<p>By default, stdin, stdout and stderr are inherited from the parent.</p>
+
+<p>This method will spawn the child process synchronously and return a
+handle to a future-aware child process. The <code>Child</code> returned implements
+<code>Future</code> itself to acquire the <code>ExitStatus</code> of the child, and otherwise
+the <code>Child</code> has methods to acquire handles to the stdin, stdout, and
+stderr streams.</p>
+
+<p>The <code>handle</code> specified to this method must be a handle to a valid event
+loop, and all I/O this child does will be associated with the specified
+event loop.</p>
+</div><h3 id='tymethod.status_async' class='method'><span id='status_async.v' class='invisible'><code>fn <a href='#tymethod.status_async' class='fnname'>status_async</a>(&amp;mut self, handle: &amp;<a class="struct" href="https://docs.rs/tokio-core/0.1/tokio_core/reactor/struct.Handle.html" title="struct tokio_core::reactor::Handle">Handle</a>) -&gt; <a class="struct" href="../tokio_process/struct.StatusAsync.html" title="struct tokio_process::StatusAsync">StatusAsync</a></code></span></h3><div class='docblock'><p>Executes a command as a child process, waiting for it to finish and
+collecting its exit status.</p>
+
+<p>By default, stdin, stdout and stderr are inherited from the parent.</p>
+
+<p>The <code>StatusAsync</code> future returned will resolve to the <code>ExitStatus</code>
+type in the standard library representing how the process exited. If
+output handles are set to a pipe then they will be immediately closed
+after the child is spawned.</p>
+
+<p>The <code>handle</code> specified must be a handle to a valid event loop, and all
+I/O this child does will be associated with the specified event loop.</p>
+
+<p>If the <code>OutputAsync</code> future is dropped before the future resolves, then
+the child will be killed, if it was spawned.</p>
+</div><h3 id='tymethod.output_async' class='method'><span id='output_async.v' class='invisible'><code>fn <a href='#tymethod.output_async' class='fnname'>output_async</a>(&amp;mut self, handle: &amp;<a class="struct" href="https://docs.rs/tokio-core/0.1/tokio_core/reactor/struct.Handle.html" title="struct tokio_core::reactor::Handle">Handle</a>) -&gt; <a class="struct" href="../tokio_process/struct.OutputAsync.html" title="struct tokio_process::OutputAsync">OutputAsync</a></code></span></h3><div class='docblock'><p>Executes the command as a child process, waiting for it to finish and
+collecting all of its output.</p>
+
+<blockquote>
+<p><strong>Note</strong>: this method, unlike the standard library, will
+unconditionally configure the stdout/stderr handles to be pipes, even
+if they have been previously configured. If this is not desired then
+the <code>spawn_async</code> method should be used in combination with the
+<code>wait_with_output</code> method on child.</p>
+</blockquote>
+
+<p>This method will return a future representing the collection of the
+child process&#39;s stdout/stderr. The <code>OutputAsync</code> future will resolve to
+the <code>Output</code> type in the standard library, containing <code>stdout</code> and
+<code>stderr</code> as <code>Vec&lt;u8&gt;</code> along with an <code>ExitStatus</code> representing how the
+process exited.</p>
+
+<p>The <code>handle</code> specified must be a handle to a valid event loop, and all
+I/O this child does will be associated with the specified event loop.</p>
+
+<p>If the <code>OutputAsync</code> future is dropped before the future resolves, then
+the child will be killed, if it was spawned.</p>
+</div></div>
+        <h2 id='implementors'>Implementors</h2>
+        <ul class='item-list' id='implementors-list'>
+    <li><code>impl CommandExt for <a class="struct" href="https://doc.rust-lang.org/nightly/std/process/struct.Command.html" title="struct std::process::Command">Command</a></code></li>
+</ul><script type="text/javascript" async
+                         src="../implementors/tokio_process/trait.CommandExt.js">
+                 </script></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../";
+        window.currentCrate = "tokio_process";
+    </script>
+    <script src="../main.js"></script>
+    <script defer src="../search-index.js"></script>
+</body>
+</html>
