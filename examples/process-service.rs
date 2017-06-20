@@ -10,13 +10,14 @@ extern crate tokio_io;
 use std::sync::Arc;
 use std::process::{Command, Stdio};
 use std::io;
+use std::io::{Read, Write};
 use std::str;
 
 use byteorder::BigEndian;
 use bytes::{BytesMut, IntoBuf, Buf, BufMut};
 use futures::{Future, Poll, Async, Stream, stream};
 use tokio_core::reactor::{Core, Handle};
-use tokio_process::{CommandExt, Child};
+use tokio_process::{CommandExt, Child, ChildStdin, ChildStdout};
 use tokio_proto::multiplex::{ClientProto, Multiplex, RequestId};
 use tokio_proto::{BindClient};
 use tokio_io::{AsyncRead, AsyncWrite};
@@ -105,8 +106,8 @@ struct ProcessClient<P> {
     command: Command,
 }
 
-impl<P> ProcessClient<P>
-    where P: BindClient<Multiplex, Child> {
+impl<'a, P> ProcessClient<P>
+    where P: BindClient<Multiplex, ChildIO< 'a>> {
     pub fn new(protocol: P, mut command: Command, handle: Handle) -> ProcessClient<P> {
         command.stdin(Stdio::piped())
             .stdout(Stdio::piped());
@@ -118,14 +119,71 @@ impl<P> ProcessClient<P>
     }
 }
 
-impl<P> Future for ProcessClient<P>
-    where P: BindClient<Multiplex, Child> {
+struct ChildIO<'a> {
+    stdin: Option<&'a mut ChildStdin>,
+    stdout: Option<&'a mut ChildStdout>,
+}
+
+impl<'a> From<Child> for ChildIO<'a> {
+    fn from(child: Child) -> Self {
+        ChildIO {
+            stdin: child.stdin().as_ref(),
+            stdout: child.stdout().as_ref(),
+        }
+    }
+}
+
+impl<'a> Write for ChildIO<'a> {
+    fn write(&mut self, bytes: &[u8]) -> io::Result<usize> {
+        if let Some(ref mut stdin) = self.stdin {
+            stdin.write(bytes)
+        } else {
+            Err(io::Error::new(io::ErrorKind::BrokenPipe, "stdin is not open"))
+        }
+    }
+
+    fn flush(&mut self) -> io::Result<()> {
+        if let Some(ref mut stdin) = self.stdin {
+            stdin.flush()
+        } else {
+            Err(io::Error::new(io::ErrorKind::BrokenPipe, "stdin is not open"))
+        }
+    }
+}
+
+impl<'a> AsyncWrite for ChildIO<'a> {
+    fn shutdown(&mut self) -> Poll<(), io::Error> {
+        if let Some(ref mut stdin) = self.stdin {
+            stdin.shutdown()
+        } else {
+            Err(io::Error::new(io::ErrorKind::BrokenPipe, "stdin is not open"))
+        }
+    }
+}
+
+impl<'a> Read for ChildIO<'a> {
+    fn read(&mut self, bytes: &mut [u8]) -> io::Result<usize> {
+        if let Some(ref mut stdout) = self.stdout {
+            stdout.read(bytes)
+        } else {
+            Err(io::Error::new(io::ErrorKind::BrokenPipe, "stdout is not open"))
+        }
+    }
+}
+
+impl<'a> AsyncRead for ChildIO<'a> {
+}
+
+
+impl<'a, P> Future for ProcessClient<P>
+    where P: BindClient<Multiplex, ChildIO<'a>> {
     type Item = P::BindClient;
     type Error = io::Error;
 
     fn poll(&mut self) -> Poll<P::BindClient, io::Error> {
         let child = self.command.spawn_async(&self.handle)?;
-        Ok(Async::Ready(self.proto.bind_client(&self.handle, child)))
+        let childio: ChildIO = child.into();
+        Ok(Async::Ready(self.proto.bind_client(&self.handle, childio)))
     }
 }
 
